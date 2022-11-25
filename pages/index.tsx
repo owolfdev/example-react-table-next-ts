@@ -1,9 +1,72 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import type { NextPage } from "next";
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import { useEffect, useState, useReducer } from "react";
+import database from "../data/data.json";
+
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+
+type Person = {
+  id: number;
+  name: string;
+};
+
+const columnHelper = createColumnHelper<Person>();
+
+const columns = [
+  columnHelper.accessor("id", {
+    header: () => "Id",
+    cell: (info) => info.renderValue(),
+    footer: (info) => info.column.id,
+  }),
+  columnHelper.accessor("name", {
+    header: () => "Name",
+    cell: (info) => info.renderValue(),
+    footer: (info) => info.column.id,
+  }),
+];
 
 const Home: NextPage = () => {
+  const [data, setData] = useState([...database]);
+  const rerender = useReducer(() => ({}), {})[1];
+  console.log("heres the data", data);
+
+  const fetchData = (data: any) => {
+    const dataJSON = JSON.stringify(data);
+    console.log("fetch data");
+    fetch("./api/hello", {
+      method: "POST",
+      body: dataJSON,
+    });
+  };
+
+  useEffect(() => {}, []);
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    const element = document.getElementById("name-input") as HTMLInputElement;
+    const name = element?.value;
+    const data = [
+      {
+        id: Math.floor(Math.random() * 10),
+        name: name,
+      },
+    ];
+    fetchData(data);
+    console.log(name);
+  };
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
     <div className={styles.container}>
       <Head>
@@ -12,61 +75,85 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+      <div>
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="name-input"></label>
+          <input type="text" id="name-input" name="name-input" />
+          <button type="submit">Submit</button>
+        </form>
+      </div>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
+      {/*  */}
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+      <div>
+        <table>
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  // console.log("header id:", header.id);
+                  // console.log(
+                  //   "header column column def:",
+                  //   header.column.columnDef
+                  // );
+                  // console.log(header.getContext());
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+                  return (
+                    <th key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell) => {
+                  //console.log("cell:", cell);
+                  console.log("cell id:", cell.id);
+                  console.log(cell.getValue());
+                  return (
+                    <td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            {table.getFooterGroups().map((footerGroup) => (
+              <tr key={footerGroup.id}>
+                {footerGroup.headers.map((header) => (
+                  <th key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.footer,
+                          header.getContext()
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </tfoot>
+        </table>
+        <button onClick={() => rerender()} className="border p-2">
+          Rerender
+        </button>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
