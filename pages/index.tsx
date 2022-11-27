@@ -1,4 +1,5 @@
 import React, { HTMLProps, useEffect } from "react";
+
 //
 
 //
@@ -16,14 +17,18 @@ import {
   RowData,
 } from "@tanstack/react-table";
 
+//import { Person } from "../scripts/makeData";
 import localData from "../data/data.json";
 
-//data maker
-import { makeData, Person } from "../scripts/makeData";
-
-// useEffect(() => {
-//   console.log(SortingState);
-// }, [SortingState]);
+type Person = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  age: number;
+  visits: number;
+  progress: number;
+  status: string;
+};
 
 declare module "@tanstack/react-table" {
   interface TableMeta<TData extends RowData> {
@@ -39,8 +44,28 @@ const defaultColumn: Partial<ColumnDef<Person>> = {
     const [value, setValue] = React.useState(initialValue);
 
     // When the input is blurred, we'll call our table meta's updateData function
-    const onBlur = () => {
+    const onBlur = async () => {
       table.options.meta?.updateData(index, id, value);
+      console.log("on blur, from defaultColumn", index, id, value);
+      const rowDataId = table.getRow(index.toString()).original.id;
+      //console.log("local data", localData);
+      console.log("value", value, "typeof value:", typeof value);
+      //const stringValue = value?.toString()
+      const updatedData = localData.map((item) =>
+        value && item.id === rowDataId
+          ? {
+              ...item,
+              [id]: value,
+            }
+          : item
+      );
+      console.log(updatedData);
+
+      //saveData(updatedData);
+      await fetch("./api/hello", {
+        method: "POST",
+        body: JSON.stringify(updatedData),
+      });
     };
 
     // If the initialValue is changed external, sync it up with our state
@@ -183,14 +208,14 @@ function HomePage() {
   //const [data, setData] = React.useState(() => makeData(1000));
   const [data, setData] = React.useState(localData);
   const [rowSelection, setRowSelection] = React.useState({});
-  const refreshData = () => setData(() => makeData(1000));
+  //const refreshData = () => setData(() => makeData(1000));
 
   useEffect(() => {
-    console.info("rowSelection", rowSelection);
-    console.info(
-      "table.getSelectedFlatRows()",
-      table.getSelectedRowModel().flatRows.map((row) => row.original)
-    );
+    // console.info("rowSelection", rowSelection);
+    // console.info(
+    //   "table.getSelectedFlatRows()",
+    //   table.getSelectedRowModel().flatRows.map((row) => row.original)
+    // );
   }, [rowSelection]);
 
   const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper();
@@ -234,9 +259,10 @@ function HomePage() {
     // console.log(e.target.type);
     // console.log(e.target.value);
     // console.log(e.target.id);
-    // console.log(e.target.parentElement.id);
+    console.log("cell id", e.target.parentElement.id);
     if (e.target.type === "text") {
       console.info(
+        "row id:",
         table.getRow(e.target.parentElement.id.split("_")[0]).original.id
       );
     }
@@ -393,7 +419,7 @@ function HomePage() {
         <button onClick={() => rerender()}>Force Rerender</button>
       </div>
       <div>
-        <button onClick={() => refreshData()}>Refresh Data</button>
+        {/* <button onClick={() => refreshData()}>Refresh Data</button> */}
       </div>
     </div>
   );
