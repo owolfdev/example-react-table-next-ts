@@ -16,6 +16,8 @@ import {
   RowData,
 } from "@tanstack/react-table";
 
+import localData from "../data/data.json";
+
 //data maker
 import { makeData, Person } from "../scripts/makeData";
 
@@ -174,7 +176,8 @@ function HomePage() {
     []
   );
 
-  const [data, setData] = React.useState(() => makeData(1000));
+  //const [data, setData] = React.useState(() => makeData(1000));
+  const [data, setData] = React.useState(localData);
   const [rowSelection, setRowSelection] = React.useState({});
   const refreshData = () => setData(() => makeData(1000));
 
@@ -223,13 +226,13 @@ function HomePage() {
   });
 
   const handleChange = (e: any) => {
-    console.log("handle change");
+    // console.log("handle change");
 
-    console.log(e.target.type);
+    // console.log(e.target.type);
 
-    console.log(e.target.value);
-    console.log(e.target.id);
-    console.log(e.target.parentElement.id);
+    // console.log(e.target.value);
+    // console.log(e.target.id);
+    // console.log(e.target.parentElement.id);
 
     if (e.target.type === "text") {
       console.info(
