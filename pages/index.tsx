@@ -21,6 +21,10 @@ import localData from "../data/data.json";
 //data maker
 import { makeData, Person } from "../scripts/makeData";
 
+// useEffect(() => {
+//   console.log(SortingState);
+// }, [SortingState]);
+
 declare module "@tanstack/react-table" {
   interface TableMeta<TData extends RowData> {
     updateData: (rowIndex: number, columnId: string, value: unknown) => void;
@@ -227,13 +231,10 @@ function HomePage() {
 
   const handleChange = (e: any) => {
     // console.log("handle change");
-
     // console.log(e.target.type);
-
     // console.log(e.target.value);
     // console.log(e.target.id);
     // console.log(e.target.parentElement.id);
-
     if (e.target.type === "text") {
       console.info(
         table.getRow(e.target.parentElement.id.split("_")[0]).original.id
@@ -284,8 +285,8 @@ function HomePage() {
                               header.getContext()
                             )}
                             {{
-                              asc: " 🔼",
-                              desc: " 🔽",
+                              asc: " ^",
+                              desc: " v",
                             }[header.column.getIsSorted() as string] ?? null}
                           </div>
                         </>
